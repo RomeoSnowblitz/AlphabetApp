@@ -1,0 +1,291 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Alphabet Learning App</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<header>
+  <div id="title"></div>
+  <button onclick="openSettings()">⚙️</button>
+</header>
+
+<!-- ================= ALPHABET ================= -->
+<div id="alphabetScreen" class="screen active">
+  <div id="alphabetGrid" class="grid"></div>
+  <div style="display:flex;justify-content:space-around;margin-top:10px">
+    <button id="btnSounds" onclick="showScreen('soundsScreen')"></button>
+    <button id="btnVocab" onclick="showScreen('vocabScreen')"></button>
+    <button id="btnReading" onclick="showScreen('readingScreen')"></button>
+    <button id="btnDict" onclick="showScreen('dictScreen')"></button>
+  </div>
+</div>
+
+<!-- ================= SOUNDS ================= -->
+<div id="soundsScreen" class="screen">
+  <button onclick="showScreen('alphabetScreen')" id="sndBack"></button>
+  <h2 id="sndTitle"></h2>
+  <div id="soundsGrid" class="grid"></div>
+  <br>
+  <button onclick="openPractice('Sounds')" id="sndPractice"></button>
+</div>
+
+<!-- ================= VOCAB ================= -->
+<div id="vocabScreen" class="screen">
+  <button onclick="showScreen('alphabetScreen')">←</button>
+  <h2 id="vocabTitle"></h2>
+  <button onclick="openPractice('Vocab','Speaking')" id="speakBtn"></button><br><br>
+  <button onclick="openPractice('Vocab','Listening')" id="listenBtn"></button><br><br>
+  <button onclick="openPractice('Vocab','Both')" id="bothBtn"></button>
+</div>
+
+<!-- ================= PRACTICE ================= -->
+<div id="practiceScreen" class="screen">
+  <div>
+    <span id="lblMax"></span>
+    <select id="maxSounds">
+      <option value="Any">Any</option>
+      <option value="1">1</option><option value="2">2</option>
+      <option value="3">3</option><option value="4">4</option>
+    </select>
+    |
+    <label>
+      <input type="checkbox" id="realOnly">
+      <span id="lblReal"></span>
+    </label>
+    |
+    <button onclick="exitPractice()" id="practiceBack"></button>
+  </div>
+  <hr>
+  <div id="practiceCard"></div>
+</div>
+
+<!-- ================= READING ================= -->
+<div id="readingScreen" class="screen">
+  <button onclick="showScreen('alphabetScreen')">←</button>
+  <h2 id="readingTitle"></h2>
+  <button onclick="openStory(0)" id="storyA"></button><br><br>
+  <button onclick="openStory(1)" id="storyB"></button><br><br>
+  <button onclick="openStory(2)" id="storyC"></button>
+</div>
+
+<div id="storyScreen" class="screen">
+  <button onclick="showScreen('readingScreen')">←</button>
+  <button id="colorModeBtn" onclick="toggleColorMode()"></button>
+  <button id="autoReadBtn" onclick="toggleAutoRead()" oncontextmenu="resetAutoRead();return false;"></button>
+  <hr>
+  <div id="storyText"></div>
+</div>
+
+<!-- ================= DICTIONARY ================= -->
+<div id="dictScreen" class="screen">
+  <button onclick="showScreen('alphabetScreen')">←</button>
+  <h2 id="dictTitle"></h2>
+  <input id="dictSearch" oninput="renderDictionary()">
+  <div id="cefrButtons"></div>
+  <div id="dictList"></div>
+</div>
+
+<!-- ================= FAQ ================= -->
+<div id="faqScreen" class="screen">
+  <button onclick="showScreen('alphabetScreen')">←</button>
+  <h2>FAQ</h2>
+  <button id="faq0" onclick="openFAQ(0)"></button><br><br>
+  <button id="faq1" onclick="openFAQ(1)"></button><br><br>
+  <button id="faq2" onclick="openFAQ(2)"></button>
+</div>
+
+<!-- ================= SETTINGS ================= -->
+<div id="settingsModal" class="modal">
+  <div class="modal-box">
+    <button class="close" onclick="closeSettings()">✖</button>
+    <button onclick="showScreen('faqScreen');closeSettings()">FAQ</button><br><br>
+    <button onclick="toggleLang()" id="langBtn"></button><br><br>
+    <button onclick="togglePhon()" id="phonBtn"></button>
+  </div>
+</div>
+
+<!-- ================= INFO MODAL ================= -->
+<div id="infoModal" class="modal">
+  <div class="modal-box">
+    <button class="close" onclick="closeInfo()">✖</button>
+    <div id="infoContent"></div>
+  </div>
+</div>
+
+<!--<script src="characters.js"></script>-->
+<script src="scripts/faq.js"></script>
+<script src="scripts/practice.js"></script>
+<script src="scripts/state.js"></script>
+<script src="scripts/stories.js"></script>
+<script src="scripts/translations.js"></script>
+<script src="scripts/words.js"></script>
+
+<script>
+/* ================= UTIL ================= */
+const $=id=>document.getElementById(id);
+function showScreen(id){
+ document.querySelectorAll(".screen").forEach(s=>s.classList.remove("active"));
+ $(id).classList.add("active");
+}
+function openSettings(){ $("settingsModal").style.display="flex"; }
+function closeSettings(){ $("settingsModal").style.display="none"; }
+function closeInfo(){ $("infoModal").style.display="none"; }
+function playSound(f){ state.audio.src=f; state.audio.play(); }
+function openInfo(html){
+ $("infoContent").innerHTML=html;
+ $("infoModal").style.display="flex";
+}
+
+/* ================= RENDER UI ================= */
+function renderUI(){
+ const t=TEXT[state.lang];
+ $("title").textContent=t.title;
+ $("btnSounds").textContent=t.sounds;
+ $("btnVocab").textContent=t.vocab;
+ $("btnReading").textContent=t.reading;
+ $("btnDict").textContent=t.dict;
+ $("sndBack").textContent="←";
+ $("sndTitle").textContent=t.sounds;
+ $("sndPractice").textContent=t.practice;
+ $("vocabTitle").textContent=t.practice;
+ $("speakBtn").textContent=t.speaking;
+ $("listenBtn").textContent=t.listening;
+ $("bothBtn").textContent=t.both;
+ $("lblMax").textContent=t.max;
+ $("lblReal").textContent=t.real;
+
+ [...$("maxSounds").options].forEach(o=>{
+  if(o.value==="Any") o.textContent=t.any;
+ });
+
+ $("practiceBack").textContent="←";
+ $("readingTitle").textContent=t.stories;
+ $("storyA").textContent=t.storyA;
+ $("storyB").textContent=t.storyB;
+ $("storyC").textContent=t.storyC;
+ $("dictTitle").textContent=t.dict;
+ $("dictSearch").placeholder=t.search;
+ $("langBtn").textContent=state.lang==="EN"?"日本語に切り替える":"Switch to English";
+ $("phonBtn").textContent=state.phon==="IPA"?"IPA Phonetics":"CE Phonetics";
+ $("colorModeBtn").textContent=state.colorMode?t.colorOn:t.colorOff;
+ $("autoReadBtn").textContent=state.autoReading?t.paused:t.auto;
+ renderDictionary();
+}
+renderUI();
+
+/* ================= ALPHABET ================= */
+(function renderAlphabet() {
+    const alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZ".split("");
+    const grid = $("alphabetGrid");
+    if (!grid) {
+        console.error("alphabetGrid not found!");
+        return;
+    }
+
+    const borders = {
+        red: ["A","E","I","O","U"],
+        orange: ["L","R","W","Y"],
+        yellow: ["C","Q","X","?"]
+    };
+
+    grid.innerHTML = "";
+
+    alphabet.forEach(letter => {
+        const d = document.createElement("div");
+
+        // Color logic (uppercase only)
+        const b = Object.keys(borders).find(k => borders[k].includes(letter)) || "black";
+        d.className = "tile " + b;
+
+        // Display Aa, Bb, etc
+        d.textContent = letter + " " + letter.toLowerCase();
+
+        d.onclick = () => {
+            let h = 0, s = 0, e = 0;
+
+            WORDS.forEach(w => {
+                if (w.word.toUpperCase().includes(letter)) {
+                    h += w.tallies.hard;
+                    s += w.tallies.skip;
+                    e += w.tallies.easy;
+                }
+            });
+            const videoPath = `videos/animated_${letter.toLowerCase()}.mp4`;
+            const videoHTML = `
+            <div class="videoBox" onclick="this.classList.toggle('fullscreen')">
+              <video autoplay loop muted playsinline>
+                <source src="${videoPath}" type="video/mp4">
+                </video>
+              </div>
+            `;
+
+            openInfo(`
+                ${videoHTML}
+                <h2>${d.textContent}</h2>
+                <p>${TEXT[state.lang].hard}: ${h}</p>
+                <p>${TEXT[state.lang].skip}: ${s}</p>
+                <p>${TEXT[state.lang].easy}: ${e}</p>
+            `);
+        };
+
+        d.oncontextmenu = e => {
+            e.preventDefault();
+            d.classList.toggle("highlighted");
+        };
+
+        grid.appendChild(d);
+    });
+})();
+
+
+
+/* ================= SOUNDS ================= */
+const SOUNDS=[
+ {s:"i",t:"v"},{s:"ɪ",t:"v"},{s:"e",t:"v"},{s:"ɛ",t:"v"},
+ {s:"æ",t:"v"},{s:"ɑ",t:"v"},{s:"ɔ",t:"v"},{s:"o",t:"v"},
+ {s:"ʊ",t:"v"},{s:"u",t:"v"},{s:"ʌ",t:"v"},{s:"ə",t:"v"},
+ {s:"aɪ",t:"v"},{s:"aʊ",t:"v"},{s:"ɔɪ",t:"v"},
+ {s:"p"},{s:"b"},{s:"t"},{s:"d"},{s:"k"},{s:"g"},
+ {s:"f"},{s:"v"},{s:"θ"},{s:"ð"},{s:"s"},{s:"z"},
+ {s:"ʃ"},{s:"ʒ"},{s:"h"},{s:"m"},{s:"n"},{s:"ŋ"},
+ {s:"l",t:"lrwy"},{s:"r",t:"lrwy"},{s:"w",t:"lrwy"},{s:"j",t:"lrwy"}
+];
+const CE_MAP={"θ":"th","ð":"th","ʃ":"sh","ʒ":"zh","ŋ":"ng","j":"y"};
+
+function renderSounds(){
+ $("soundsGrid").innerHTML="";
+ SOUNDS.forEach(o=>{
+  const d=document.createElement("div");
+  const cls=o.t==="v"?"red":o.t==="lrwy"?"orange":"black";
+  d.className="tile "+cls;
+  d.textContent= state.phon==="IPA"?o.s:(CE_MAP[o.s]||o.s);
+  d.onclick=()=>openInfo(`<h2>${d.textContent}</h2>`);
+  d.oncontextmenu=e=>{e.preventDefault();d.classList.toggle("highlighted");};
+  $("soundsGrid").appendChild(d);
+ });
+}
+renderSounds();
+
+const CEFRS=["A1","A2","B1","B2","C1","Unlisted","Undefined"];
+CEFRS.forEach(c=>{
+ const label=document.createElement("label");
+ const cb=document.createElement("input");
+ cb.type="checkbox"; cb.checked=true;
+ cb.onchange=()=>{ cb.checked?state.cefrFilter.add(c):state.cefrFilter.delete(c); renderDictionary(); };
+ label.appendChild(cb); label.append(" "+c+" ");
+ $("cefrButtons").appendChild(label);
+});
+
+function updateFAQButtons(){
+ $("faq0").textContent = state.lang==="EN"?FAQ[0].enQ:FAQ[0].jpQ;
+ $("faq1").textContent = state.lang==="EN"?FAQ[1].enQ:FAQ[1].jpQ;
+ $("faq2").textContent = state.lang==="EN"?FAQ[2].enQ:FAQ[2].jpQ;
+}
+updateFAQButtons();
+
+//8
+</script>
+</body>
+</html>

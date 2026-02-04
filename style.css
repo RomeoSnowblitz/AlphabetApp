@@ -1,0 +1,176 @@
+/* ================= GLOBAL ================= */
+body {
+  margin: 0;
+  font-family: sans-serif;
+  background: white;
+  color: black;
+}
+
+header {
+  display: flex;
+  justify-content: space-between;
+  padding: 10px;
+}
+
+button {
+  padding: 8px 14px;
+  cursor: pointer;
+}
+
+/* ================= SCREENS ================= */
+.screen {
+  display: none;
+  padding: 10px;
+}
+
+.screen.active {
+  display: block;
+}
+
+/* ================= GRIDS ================= */
+.grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 8px;
+}
+
+.tile {
+  border: 3px solid black;
+  padding: 16px;
+  text-align: center;
+  cursor: pointer;
+  user-select: none;
+}
+
+.highlighted {
+  background: #ffeaa7;
+}
+
+/* ================= TILE COLORS ================= */
+.red {
+  border-color: red;
+}
+
+.orange {
+  border-color: orange;
+}
+
+.black {
+  border-color: black;
+}
+
+.yellow {
+  border-color: gold;
+}
+
+/* ================= STORY WORDS ================= */
+.word {
+  cursor: pointer;
+  padding: 2px;
+}
+
+.word.playing {
+  background: yellow;
+  color: black;
+}
+
+.word.word--unknown {
+  color: red;
+}
+
+.story-title {
+  margin-top: 0;
+  margin-bottom: 0.5em;
+}
+
+/* ================= MODALS ================= */
+.modal {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.4);
+  display: none;
+  justify-content: center;
+  align-items: center;
+}
+
+.modal-box {
+  background: white;
+  padding: 20px;
+  width: 400px;
+  position: relative;
+}
+
+.close {
+  position: absolute;
+  top: 5px;
+  right: 5px;
+}
+
+/* ================= FULL SCREEN ================= */
+
+.videoBox {
+  position: relative;
+  max-width: 320px;
+  margin: 0 auto 10px;
+  cursor: pointer;
+}
+
+.videoBox video {
+  width: 100%;
+  border-radius: 8px;
+}
+
+.videoBox.fullscreen {
+  position: fixed;
+  inset: 0;
+  background: black;
+  z-index: 9999;
+  max-width: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.videoBox.fullscreen video {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+.letter-popup-wrapper {
+  max-height: 80vh;   /* keeps whole popup on screen */
+  display: flex;
+  flex-direction: column;
+}
+
+.letter-notes-scroll {
+  max-height: 50vh;   /* this is what actually scrolls */
+  overflow-y: auto;
+  padding-right: 8px; /* prevents scrollbar overlap */
+}
+
+.letter-notes-content h3 {
+  margin-top: 12px;
+}
+
+.letter-notes-content table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.letter-notes-content th,
+.letter-notes-content td {
+  border: 1px solid #ccc;
+  padding: 4px;
+  text-align: left;
+}
+
+.letter-word {
+  color: #1a73e8; /* blue */
+  cursor: pointer;
+  text-decoration: underline;
+}
+
+.letter-word:hover {
+  color: #0c47a1; /* darker blue on hover */
+}

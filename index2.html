@@ -1,0 +1,478 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Alphabet Learning App</title>
+
+<style>
+body { margin:0; font-family:sans-serif; background:white; color:black }
+header { display:flex; justify-content:space-between; padding:10px }
+button { padding:8px 14px; cursor:pointer }
+.screen { display:none; padding:10px }
+.screen.active { display:block }
+
+.grid { display:grid; grid-template-columns:repeat(7,1fr); gap:8px }
+
+.tile {
+  border:3px solid black;
+  padding:16px;
+  text-align:center;
+  cursor:pointer;
+  user-select:none;
+}
+.highlighted { background:#ffeaa7}
+
+.red{border-color:red}
+.orange{border-color:orange}
+.black{border-color:black}
+.yellow{border-color:gold}
+
+.word { cursor:pointer; padding:2px }
+.word.playing { background:yellow; color:black }
+
+.modal {
+  position:fixed; inset:0;
+  background:rgba(0,0,0,.4);
+  display:none; justify-content:center; align-items:center;
+}
+.modal-box {
+  background:white;
+  padding:20px;
+  width:400px;
+  position:relative;
+}
+.close { position:absolute; top:5px; right:5px }
+</style>
+</head>
+
+<body>
+
+<header>
+  <div id="title"></div>
+  <button onclick="openSettings()">⚙️</button>
+</header>
+
+<!-- ================= ALPHABET ================= -->
+<div id="alphabetScreen" class="screen active">
+  <div id="alphabetGrid" class="grid"></div>
+  <div style="display:flex;justify-content:space-around;margin-top:10px">
+    <button id="btnSounds" onclick="showScreen('soundsScreen')"></button>
+    <button id="btnVocab" onclick="showScreen('vocabScreen')"></button>
+    <button id="btnReading" onclick="showScreen('readingScreen')"></button>
+    <button id="btnDict" onclick="showScreen('dictScreen')"></button>
+  </div>
+</div>
+
+<!-- ================= SOUNDS ================= -->
+<div id="soundsScreen" class="screen">
+  <button onclick="showScreen('alphabetScreen')" id="sndBack"></button>
+  <h2 id="sndTitle"></h2>
+  <div id="soundsGrid" class="grid"></div>
+  <br>
+  <button onclick="openPractice('Sounds')" id="sndPractice"></button>
+</div>
+
+<!-- ================= VOCAB ================= -->
+<div id="vocabScreen" class="screen">
+  <button onclick="showScreen('alphabetScreen')">←</button>
+  <h2 id="vocabTitle"></h2>
+  <button onclick="openPractice('Vocab','Speaking')" id="speakBtn"></button><br><br>
+  <button onclick="openPractice('Vocab','Listening')" id="listenBtn"></button><br><br>
+  <button onclick="openPractice('Vocab','Both')" id="bothBtn"></button>
+</div>
+
+<!-- ================= PRACTICE ================= -->
+<div id="practiceScreen" class="screen">
+  <div>
+    <span id="lblMax"></span>
+    <select id="maxSounds">
+      <option value="Any">Any</option>
+      <option value="1">1</option><option value="2">2</option>
+      <option value="3">3</option><option value="4">4</option>
+    </select>
+    |
+    <label>
+      <input type="checkbox" id="realOnly">
+      <span id="lblReal"></span>
+    </label>
+    |
+    <button onclick="exitPractice()" id="practiceBack"></button>
+  </div>
+  <hr>
+  <div id="practiceCard"></div>
+</div>
+
+<!-- ================= READING ================= -->
+<div id="readingScreen" class="screen">
+  <button onclick="showScreen('alphabetScreen')">←</button>
+  <h2 id="readingTitle"></h2>
+  <button onclick="openStory(0)" id="storyA"></button><br><br>
+  <button onclick="openStory(1)" id="storyB"></button><br><br>
+  <button onclick="openStory(2)" id="storyC"></button>
+</div>
+
+<div id="storyScreen" class="screen">
+  <button onclick="showScreen('readingScreen')">←</button>
+  <button id="colorModeBtn" onclick="toggleColorMode()"></button>
+  <button id="autoReadBtn" onclick="toggleAutoRead()" oncontextmenu="resetAutoRead();return false;"></button>
+  <hr>
+  <div id="storyText"></div>
+</div>
+
+<!-- ================= DICTIONARY ================= -->
+<div id="dictScreen" class="screen">
+  <button onclick="showScreen('alphabetScreen')">←</button>
+  <h2 id="dictTitle"></h2>
+  <input id="dictSearch" oninput="renderDictionary()">
+  <div id="cefrButtons"></div>
+  <div id="dictList"></div>
+</div>
+
+<!-- ================= FAQ ================= -->
+<div id="faqScreen" class="screen">
+  <button onclick="showScreen('alphabetScreen')">←</button>
+  <h2>FAQ</h2>
+  <button id="faq0" onclick="openFAQ(0)"></button><br><br>
+  <button id="faq1" onclick="openFAQ(1)"></button><br><br>
+  <button id="faq2" onclick="openFAQ(2)"></button>
+</div>
+
+<!-- ================= SETTINGS ================= -->
+<div id="settingsModal" class="modal">
+  <div class="modal-box">
+    <button class="close" onclick="closeSettings()">✖</button>
+    <button onclick="showScreen('faqScreen');closeSettings()">FAQ</button><br><br>
+    <button onclick="toggleLang()" id="langBtn"></button><br><br>
+    <button onclick="togglePhon()" id="phonBtn"></button>
+  </div>
+</div>
+
+<!-- ================= INFO MODAL ================= -->
+<div id="infoModal" class="modal">
+  <div class="modal-box">
+    <button class="close" onclick="closeInfo()">✖</button>
+    <div id="infoContent"></div>
+  </div>
+</div>
+
+<script>
+/* ================= STATE ================= */
+const state={
+  lang:"EN", phon:"IPA",
+  practiceFrom:null, practiceMode:null,
+  practice:{queue:[],current:null},
+  autoReading:false, autoIndex:0,
+  colorMode:false,
+  audio:new Audio(),
+  cefrFilter:new Set(["A1","A2","B1","B2","C1","Unlisted","Undefined"])
+};
+
+/* ================= WORDS ================= */
+const WORDS=[
+ {word:"cat",cefr:"A1",ipa:"/kæt/",ce:"kat",sounds:3,
+  enDef:"A small animal.",jpWord:"猫",jpDef:"小さな動物",
+  soundFile:"audio/cat.mp3",
+  tallies:{hard:0,skip:0,easy:0}},
+ {word:"thra",cefr:"B1",ipa:"/θræ/",ce:"thra",sounds:-3,
+  enDef:"Fake practice word.",jpWord:"（なし）",jpDef:"偽の単語",
+  soundFile:"audio/thra.mp3",
+  tallies:{hard:0,skip:0,easy:0}}
+];
+
+/* ================= STORIES ================= */
+const STORIES=[
+ "cat cat cat thra thra cat thra cat",
+ "Story B placeholder.",
+ "Story C placeholder."
+];
+
+/* ================= UTIL ================= */
+const $=id=>document.getElementById(id);
+function showScreen(id){
+ document.querySelectorAll(".screen").forEach(s=>s.classList.remove("active"));
+ $(id).classList.add("active");
+}
+function openSettings(){ $("settingsModal").style.display="flex"; }
+function closeSettings(){ $("settingsModal").style.display="none"; }
+function closeInfo(){ $("infoModal").style.display="none"; }
+function playSound(f){ state.audio.src=f; state.audio.play(); }
+function openInfo(html){
+ $("infoContent").innerHTML=html;
+ $("infoModal").style.display="flex";
+}
+
+/* ================= LANGUAGE MAP ================= */
+const TEXT={
+ EN:{
+  title:"Alphabet App",sounds:"Sounds",vocab:"Vocabulary",
+  reading:"Reading",dict:"Dictionary",
+  practice:"Practice",speaking:"Speaking",listening:"Listening",both:"Both",
+  max:"Max Sounds",real:"Real Words Only",any:"Any",
+  play:"Play",reveal:"Reveal",
+  hard:"Hard",skip:"Skipped",easy:"Easy",
+  stories:"Stories",
+  storyA:"Story A",storyB:"Story B",storyC:"Story C",
+  colorOn:"Color Mode: ON",colorOff:"Color Mode: OFF",
+  auto:"Auto Read",paused:"Pause",
+  search:"Search…"
+ },
+ JP:{
+  title:"アルファベットアプリ",sounds:"音",vocab:"語彙",
+  reading:"読み物",dict:"辞書",
+  practice:"練習",speaking:"スピーキング",listening:"リスニング",both:"両方",
+  max:"最大音数",real:"実在語のみ",any:"任意",
+  play:"再生",reveal:"表示",
+  hard:"難しい",skip:"スキップ",easy:"簡単",
+  stories:"物語",
+  storyA:"物語A",storyB:"物語B",storyC:"物語C",
+  colorOn:"カラーモード：オン",colorOff:"カラーモード：オフ",
+  auto:"自動再生",paused:"一時停止",
+  search:"検索…"
+ }
+};
+
+/* ================= RENDER UI ================= */
+function renderUI(){
+ const t=TEXT[state.lang];
+ $("title").textContent=t.title;
+ $("btnSounds").textContent=t.sounds;
+ $("btnVocab").textContent=t.vocab;
+ $("btnReading").textContent=t.reading;
+ $("btnDict").textContent=t.dict;
+ $("sndBack").textContent="←";
+ $("sndTitle").textContent=t.sounds;
+ $("sndPractice").textContent=t.practice;
+ $("vocabTitle").textContent=t.practice;
+ $("speakBtn").textContent=t.speaking;
+ $("listenBtn").textContent=t.listening;
+ $("bothBtn").textContent=t.both;
+ $("lblMax").textContent=t.max;
+ $("lblReal").textContent=t.real;
+
+ [...$("maxSounds").options].forEach(o=>{
+  if(o.value==="Any") o.textContent=t.any;
+ });
+
+ $("practiceBack").textContent="←";
+ $("readingTitle").textContent=t.stories;
+ $("storyA").textContent=t.storyA;
+ $("storyB").textContent=t.storyB;
+ $("storyC").textContent=t.storyC;
+ $("dictTitle").textContent=t.dict;
+ $("dictSearch").placeholder=t.search;
+ $("langBtn").textContent=state.lang==="EN"?"日本語に切り替える":"Switch to English";
+ $("phonBtn").textContent=state.phon==="IPA"?"IPA Phonetics":"CE Phonetics";
+ $("colorModeBtn").textContent=state.colorMode?t.colorOn:t.colorOff;
+ $("autoReadBtn").textContent=state.autoReading?t.paused:t.auto;
+ renderDictionary();
+}
+renderUI();
+
+/* ================= ALPHABET ================= */
+const alphabet="ABCDEFGHIJKLMNOPQRSTUVWXYZ?".split("");
+const borders={red:["A","E","I","O","U"],orange:["L","R","W","Y"],yellow:["C","Q","X","?"]};
+alphabet.forEach(l=>{
+ const d=document.createElement("div");
+ const b=Object.keys(borders).find(k=>borders[k].includes(l))||"black";
+ d.className="tile "+b;
+ d.textContent=l;
+ d.onclick=()=>{
+  let h=0,s=0,e=0;
+  WORDS.forEach(w=>{
+   if(w.word.toUpperCase().includes(l)){
+    h+=w.tallies.hard; s+=w.tallies.skip; e+=w.tallies.easy;
+   }
+  });
+  openInfo(`<h2>${l}</h2>
+   <p>${TEXT[state.lang].hard}: ${h}</p>
+   <p>${TEXT[state.lang].skip}: ${s}</p>
+   <p>${TEXT[state.lang].easy}: ${e}</p>`);
+ };
+ d.oncontextmenu=e=>{e.preventDefault();d.classList.toggle("highlighted");};
+ $("alphabetGrid").appendChild(d);
+});
+
+/* ================= SOUNDS ================= */
+const SOUNDS=[
+ {s:"i",t:"v"},{s:"ɪ",t:"v"},{s:"e",t:"v"},{s:"ɛ",t:"v"},
+ {s:"æ",t:"v"},{s:"ɑ",t:"v"},{s:"ɔ",t:"v"},{s:"o",t:"v"},
+ {s:"ʊ",t:"v"},{s:"u",t:"v"},{s:"ʌ",t:"v"},{s:"ə",t:"v"},
+ {s:"aɪ",t:"v"},{s:"aʊ",t:"v"},{s:"ɔɪ",t:"v"},
+ {s:"p"},{s:"b"},{s:"t"},{s:"d"},{s:"k"},{s:"g"},
+ {s:"f"},{s:"v"},{s:"θ"},{s:"ð"},{s:"s"},{s:"z"},
+ {s:"ʃ"},{s:"ʒ"},{s:"h"},{s:"m"},{s:"n"},{s:"ŋ"},
+ {s:"l",t:"lrwy"},{s:"r",t:"lrwy"},{s:"w",t:"lrwy"},{s:"j",t:"lrwy"}
+];
+const CE_MAP={"θ":"th","ð":"th","ʃ":"sh","ʒ":"zh","ŋ":"ng","j":"y"};
+
+function renderSounds(){
+ $("soundsGrid").innerHTML="";
+ SOUNDS.forEach(o=>{
+  const d=document.createElement("div");
+  const cls=o.t==="v"?"red":o.t==="lrwy"?"orange":"black";
+  d.className="tile "+cls;
+  d.textContent= state.phon==="IPA"?o.s:(CE_MAP[o.s]||o.s);
+  d.onclick=()=>openInfo(`<h2>${d.textContent}</h2>`);
+  d.oncontextmenu=e=>{e.preventDefault();d.classList.toggle("highlighted");};
+  $("soundsGrid").appendChild(d);
+ });
+}
+renderSounds();
+
+/* ================= PRACTICE ================= */
+function openPractice(from,mode){
+ state.practiceFrom=from;
+ state.practiceMode=mode;
+ buildQueue();
+ showScreen("practiceScreen");
+ nextWord();
+}
+function exitPractice(){
+ showScreen(state.practiceFrom==="Sounds"?"soundsScreen":"alphabetScreen");
+}
+function buildQueue(){
+ const max=$("maxSounds").value;
+ const real=$("realOnly").checked;
+ state.practice.queue=WORDS.filter(w=>{
+  if(real && w.enDef.toLowerCase().includes("fake")) return false;
+  if(max!=="Any" && Math.abs(w.sounds)>+max) return false;
+  return true;
+ });
+}
+function nextWord(){
+ if(!state.practice.queue.length){$("practiceCard").textContent="No words";return;}
+ state.practice.current=state.practice.queue[Math.floor(Math.random()*state.practice.queue.length)];
+ renderCard();
+}
+function renderCard(){
+ const t=TEXT[state.lang];
+ const w=state.practice.current;
+ $("practiceCard").innerHTML=`
+  <h2>${w.word}</h2>
+  <button onclick="playWord()">${t.play}</button><br><br>
+  <button onclick="reveal()">${t.reveal}</button>`;
+}
+function playWord(){
+ state.audio.src=state.practice.current.soundFile;
+ state.audio.play();
+}
+function reveal(){
+ const t=TEXT[state.lang];
+ const w=state.practice.current;
+ playWord();
+ $("practiceCard").innerHTML=`
+  <h2>${w.word}</h2>
+  <p>${state.phon==="IPA"?w.ipa:w.ce}</p>
+  <p>${w.jpWord}</p>
+  <p>${state.lang==="EN"?w.enDef:w.jpDef}</p>
+  <button onclick="score('hard')">${t.hard}</button>
+  <button onclick="score('skip')">${t.skip}</button>
+  <button onclick="score('easy')">${t.easy}</button>`;
+}
+function score(type){
+ state.practice.current.tallies[type]++;
+ nextWord();
+}
+
+/* ================= READING ================= */
+function openStory(i){
+ $("storyText").innerHTML="";
+ state.autoIndex=0;
+ STORIES[i].split(" ").forEach((w,idx)=>{
+  const span=document.createElement("span");
+  span.className="word";
+  span.textContent=w+" ";
+  span.onclick=()=>{
+   const word=WORDS.find(x=>x.word===w);
+   if(word){
+    openInfo(`<h2>${word.word}</h2>
+     <button onclick="playSound('${word.soundFile}')">🔊</button>
+     <p>${state.phon==="IPA"?word.ipa:word.ce}</p>
+     <p>${word.jpWord}</p>
+     <p>${state.lang==="EN"?word.enDef:word.jpDef}</p>`);
+   }
+  };
+  span.oncontextmenu=e=>{
+   e.preventDefault();
+   document.querySelectorAll(".word").forEach(x=>x.classList.remove("playing","highlighted"));
+   span.classList.add("highlighted");
+   state.autoIndex=idx;
+  };
+  $("storyText").appendChild(span);
+ });
+ showScreen("storyScreen");
+}
+function toggleColorMode(){
+ state.colorMode=!state.colorMode;
+ renderUI();
+}
+function toggleAutoRead(){
+ state.autoReading=!state.autoReading;
+ renderUI();
+ if(state.autoReading) autoReadNext();
+}
+function resetAutoRead(){
+ state.autoReading=false;
+ state.autoIndex=0;
+ document.querySelectorAll(".word").forEach(w=>w.classList.remove("playing","highlighted"));
+ renderUI();
+}
+function autoReadNext(){
+ if(!state.autoReading) return;
+ const words=[...document.querySelectorAll(".word")];
+ if(state.autoIndex>=words.length){
+  resetAutoRead(); return;
+ }
+ words.forEach(w=>w.classList.remove("playing"));
+ const el=words[state.autoIndex];
+ el.classList.add("playing");
+ const w=WORDS.find(x=>x.word===el.textContent.trim());
+ if(w){
+  state.audio.src=w.soundFile;
+  state.audio.onended=()=>{
+   state.autoIndex++;
+   autoReadNext();
+  };
+  state.audio.play();
+ }
+}
+
+/* ================= DICTIONARY ================= */
+const CEFRS=["A1","A2","B1","B2","C1","Unlisted","Undefined"];
+CEFRS.forEach(c=>{
+ const label=document.createElement("label");
+ const cb=document.createElement("input");
+ cb.type="checkbox"; cb.checked=true;
+ cb.onchange=()=>{ cb.checked?state.cefrFilter.add(c):state.cefrFilter.delete(c); renderDictionary(); };
+ label.appendChild(cb); label.append(" "+c+" ");
+ $("cefrButtons").appendChild(label);
+});
+
+function renderDictionary(){
+ $("dictList").innerHTML="";
+ const q=$("dictSearch").value.toLowerCase();
+ WORDS.forEach(w=>{
+  if(!state.cefrFilter.has(w.cefr)) return;
+  if(q && !w.word.includes(q)) return;
+  const d=document.createElement("div");
+  d.innerHTML=`
+   <button onclick="event.stopPropagation();playSound('${w.soundFile}')">🔊</button>
+   <b>${w.word}</b> | ${w.cefr} | ${state.phon==="IPA"?w.ipa:w.ce} | ${w.jpWord}
+   | ${TEXT[state.lang].hard}:${w.tallies.hard}
+   ${TEXT[state.lang].skip}:${w.tallies.skip}
+   ${TEXT[state.lang].easy}:${w.tallies.easy}`;
+  d.onclick=()=>openInfo(`<h2>${w.word}</h2>
+   <button onclick="playSound('${w.soundFile}')">🔊</button>
+   <p>${state.phon==="IPA"?w.ipa:w.ce}</p>
+   <p>${w.jpWord}</p>
+   <p>${state.lang==="EN"?w.enDef:w.jpDef}</p>`);
+  $("dictList").appendChild(d);
+ });
+}
+
+/* ================= FAQ ================= */
+
+//7
+</script>
+</body>
+</html>

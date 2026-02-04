@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Letter Drawing & Analyzer</title>
+<style>
+  body { display: flex; flex-direction: column; align-items: center; font-family: sans-serif; }
+  #canvases { display: flex; gap: 20px; margin-top: 20px; }
+  canvas { border: 1px solid #333; background: #fff; }
+  .controls { margin-top: 20px; }
+  button { margin: 5px; padding: 5px 10px; }
+</style>
+</head>
+<body>
+
+<h1>Letter Drawing & Analyzer</h1>
+<div id="canvases">
+  <canvas id="canvasA" width="300" height="300"></canvas>
+  <canvas id="canvasB" width="300" height="300"></canvas>
+  <canvas id="canvasC" width="300" height="300"></canvas>
+</div>
+
+<div class="controls">
+  <select id="letterSelect"></select>
+  <button id="submitBtn">Submit Letter</button>
+</div>
+
+<div id="results"></div>
+
+<script>
+const canvasA = document.getElementById('canvasA');
+const ctxA = canvasA.getContext('2d');
+const canvasB = document.getElementById('canvasB');
+const ctxB = canvasB.getContext('2d');
+const canvasC = document.getElementById('canvasC');
+const ctxC = canvasC.getContext('2d');
+
+let drawing = false;
+let currentStroke = [];
+let drawnStrokes = [];
+const rainbow = ["red","orange","yellow","green","cyan","blue"];
+const modelPoints = {}; // Will hold hardcoded letters points and curves
+const grid = ["NW","N","NE","W","C","E","SW","S","SE"];
+
+// --- Utility Functions ---
+function distance(p1, p2) {
+  return Math.sqrt((p1.x - p2.x)**2 + (p1.y - p2.y)**2);
+}
+
+// Map canvas coordinates to 3x3 grid
+function mapToGrid(x, y, width, height) {
+  const gx = Math.floor(x / (width/3));
+  const gy = Math.floor(y / (height/3));
+  return grid[gy*3 + gx];
+}
+
+// Draw grey box around points
+function drawPointBox(ctx, p) {
+  ctx.fillStyle = "rgba(100,100,100,0.2)";
+  ctx.beginPath();
+  ctx.arc(p.x, p.y, 12.5, 0, Math.PI*2);
+  ctx.fill();
+}
+
+// Draw a stroke
+function drawStroke(ctx, stroke, colorIdx=0) {
+  if(stroke.length < 2) return;
+  ctx.strokeStyle = rainbow[colorIdx % rainbow.length];
+  ctx.lineWidth = 2;
+  ctx.beginPath();
+  ctx.moveTo(stroke[0].x, stroke[0].y);
+  for(let i=1; i<stroke.length; i++){
+    ctx.lineTo(stroke[i].x, stroke[i].y);
+  }
+  ctx.stroke();
+  stroke.forEach(p => drawPointBox(ctx,p));
+}
+
+// --- Canvas A Drawing ---
+canvasA.addEventListener('mousedown', e => {
+  drawing = true;
+  currentStroke = [];
+  const rect = canvasA.getBoundingClientRect();
+  currentStroke.push({x:e.clientX-rect.left, y:e.clientY-rect.top});
+});
+canvasA.addEventListener('mousemove', e => {
+  if(!drawing) return;
+  const rect = canvasA.getBoundingClientRect();
+  currentStroke.push({x:e.clientX-rect.left, y:e.clientY-rect.top});
+  ctxA.clearRect(0,0,canvasA.width,canvasA.height);
+  drawnStrokes.forEach((s,i)=>drawStroke(ctxA,s,i));
+  drawStroke(ctxA,currentStroke,drawnStrokes.length);
+});
+canvasA.addEventListener('mouseup', e => {
+  if(drawing){
+    drawnStrokes.push(currentStroke);
+    currentStroke = [];
+    drawing = false;
+  }
+});
+
+// --- Letter Select ---
+const letters = Object.keys(modelPoints);
+const select = document.getElementById('letterSelect');
+letters.forEach(l => {
+  const opt = document.createElement('option');
+  opt.value = l; opt.text = l;
+  select.add(opt);
+});
+
+// --- Hardcoded Letter Models ---
+const hardcodedLetters = {
+  "A":[["N","SW"],["N","SE"],["W","E"]],
+  "B":[["NW","SW"],["NW","W","EO"],["W","SW","EO"]],
+  "C":[["NE","SE","WO"]],
+  "D":[["NW","SW"],["NW","SW","EO"]],
+  "E":[["NW","SW"],["NW","NE"],["W","E"],["SW","E"]],
+  "F":[["NW","SW"],["NW","NE"],["W","E"]],
+  "G":[["NE","E","WO"],["E","C"]],
+  "H":[["NW","SW"],["W","E"],["NE","SE"]],
+  "I":[["NW","NE"],["N","S"],["SW","SE"]],
+  "J":[["NW","NE"],["N","SW","SO"]],
+  "K":[["NW","SW"],["NE","W"],["W","SE"]],
+  "L":[["NW","SW"],["SW","SE"]],
+  "M":[["SW","NNW"],["NNW","C"],["C","NNE"],["NNE","SE"]],
+  "N":[["SW","NW"],["NW","SE"],["SE","NE"]],
+  "O":[["N","W","S","E","O"]],
+  "P":[["NW","SW"],["NW","W","EO"]],
+  "Q":[["N","W","S","E","O"],["C","SE"]],
+  "R":[["NW","SW"],["NW","W","EO"],["W","SE"]],
+  "S":[["NE","C","WO"],["C","SW","EO"]],
+  "T":[["NW","NE"],["N","S"]],
+  "U":[["NW","NW","SO"]],
+  "V":[["NW","S"],["S","NE"]],
+  "W":[["NW","SSW"],["SSW","C"],["C","SSE"],["SSE","NE"]],
+  "X":[["NW","SE"],["NE","SW"]],
+  "Y":[["NW","C"],["NE","C"],["C","S"]],
+  "Z":[["NW","NE"],["NE","SW"],["SW","SE"]]
+};
+
+// --- Accuracy Checking ---
+function analyzeAccuracy() {
+  const results = {};
+  const allGrids = [];
+  drawnStrokes.forEach(stroke=>{
+    stroke.forEach(p=>{
+      allGrids.push(mapToGrid(p.x,p.y,canvasA.width,canvasA.height));
+    });
+  });
+  letters.forEach(l=>{
+    let letterPoints = [];
+    hardcodedLetters[l].forEach(stroke=>{
+      letterPoints.push(...stroke.slice(0,2)); // start and end
+      if(stroke[2]) letterPoints.push(stroke[2]); // mid if curve
+    });
+    let matched = 0;
+    letterPoints.forEach(lp=>{
+      if(allGrids.includes(lp)) matched++;
+    });
+    results[l] = (matched/letterPoints.length*100).toFixed(1);
+  });
+  return results;
+}
+
+// --- Draw Model Letter on Canvas C ---
+function drawModelLetter(letter) {
+  ctxC.clearRect(0,0,canvasC.width,canvasC.height);
+  const strokes = hardcodedLetters[letter];
+  strokes.forEach((stroke,idx)=>{
+    const points = [];
+    stroke.forEach((p,i)=>{
+      // Map grid to canvas coordinates
+      let x = 0, y = 0;
+      switch(p){
+        case "NW": x=canvasC.width*0.25; y=canvasC.height*0.25; break;
+        case "N": x=canvasC.width*0.5; y=canvasC.height*0.25; break;
+        case "NE": x=canvasC.width*0.75; y=canvasC.height*0.25; break;
+        case "W": x=canvasC.width*0.25; y=canvasC.height*0.5; break;
+        case "C": x=canvasC.width*0.5; y=canvasC.height*0.5; break;
+        case "E": x=canvasC.width*0.75; y=canvasC.height*0.5; break;
+        case "SW": x=canvasC.width*0.25; y=canvasC.height*0.75; break;
+        case "S": x=canvasC.width*0.5; y=canvasC.height*0.75; break;
+        case "SE": x=canvasC.width*0.75; y=canvasC.height*0.75; break;
+        default: x=canvasC.width/2; y=canvasC.height/2;
+      }
+      points.push({x,y});
+    });
+    drawStroke(ctxC,points,idx);
+  });
+}
+
+// --- Submit Button ---
+document.getElementById('submitBtn').addEventListener('click', ()=>{
+  const results = analyzeAccuracy();
+  const sorted = Object.entries(results).sort((a,b)=>b[1]-a[1]);
+  let html = "Accuracy from highest to lowest:<br>";
+  sorted.forEach(([l,v])=>html+=`${l}: ${v}%<br>`);
+  document.getElementById('results').innerHTML = html;
+
+  // Draw selected model letter
+  drawModelLetter(select.value);
+});
+</script>
+
+</body>
+</html>

@@ -1,0 +1,420 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Alphabet Learning App</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<header>
+  <div id="title"></div>
+  <button onclick="openSettings()">⚙️</button>
+</header>
+
+<!-- ================= ALPHABET ================= -->
+<div id="alphabetScreen" class="screen active">
+  <div id="alphabetGrid" class="grid"></div>
+  <div style="display:flex;justify-content:space-around;margin-top:10px">
+    <button id="btnSounds" onclick="showScreen('soundsScreen')"></button>
+    <button id="btnVocab" onclick="showScreen('vocabScreen')"></button>
+    <button id="btnReading" onclick="showScreen('readingScreen')"></button>
+    <button id="btnDict" onclick="showScreen('dictScreen')"></button>
+  </div>
+</div>
+
+<!-- ================= SOUNDS ================= -->
+<div id="soundsScreen" class="screen">
+  <button onclick="showScreen('alphabetScreen')" id="sndBack"></button>
+  <h2 id="sndTitle"></h2>
+  <div id="soundsGrid" class="grid"></div>
+  <br>
+  <button onclick="openPractice('Sounds')" id="sndPractice"></button>
+</div>
+
+<!-- ================= VOCAB ================= -->
+<div id="vocabScreen" class="screen">
+  <button onclick="showScreen('alphabetScreen')">←</button>
+  <h2 id="vocabTitle"></h2>
+  <button onclick="openPractice('Vocab','Speaking')" id="speakBtn"></button><br><br>
+  <button onclick="openPractice('Vocab','Listening')" id="listenBtn"></button><br><br>
+  <button onclick="openPractice('Vocab','Both')" id="bothBtn"></button>
+</div>
+
+<!-- ================= PRACTICE ================= -->
+<div id="practiceScreen" class="screen">
+  <div>
+    <span id="lblMax"></span>
+    <select id="maxSounds">
+      <option value="Any">Any</option>
+      <option value="1">1</option><option value="2">2</option>
+      <option value="3">3</option><option value="4">4</option>
+    </select>
+    |
+    <label>
+      <input type="checkbox" id="realOnly">
+      <span id="lblReal"></span>
+    </label>
+    |
+    <button onclick="exitPractice()" id="practiceBack"></button>
+  </div>
+  <hr>
+  <div id="practiceCard"></div>
+</div>
+
+<!-- ================= READING ================= -->
+<div id="readingScreen" class="screen">
+  <button onclick="showScreen('alphabetScreen')">←</button>
+  <h2 id="readingTitle"></h2>
+  <button id="storyA"></button><br><br>
+  <button id="storyB"></button><br><br>
+  <button id="storyC"></button>
+</div>
+
+<div id="storyScreen" class="screen">
+  <button onclick="showScreen('readingScreen')">←</button>
+  <button id="colorModeBtn" onclick="toggleColorMode()"></button>
+  <button id="autoReadBtn" onclick="toggleAutoRead()" oncontextmenu="resetAutoRead();return false;"></button>
+  <hr>
+  <div id="storyText"></div>
+</div>
+
+<!-- ================= DICTIONARY ================= -->
+<div id="dictScreen" class="screen">
+  <button onclick="showScreen('alphabetScreen')">←</button>
+  <h2 id="dictTitle"></h2>
+  <input id="dictSearch" oninput="renderDictionary()">
+  <div id="cefrButtons"></div>
+  <div id="dictList"></div>
+</div>
+
+<!-- ================= FAQ ================= -->
+<div id="faqScreen" class="screen">
+  <button onclick="showScreen('alphabetScreen')">←</button>
+  <h2>FAQ</h2>
+  <button id="faq0" onclick="openFAQ(0)"></button><br><br>
+  <button id="faq1" onclick="openFAQ(1)"></button><br><br>
+  <button id="faq2" onclick="openFAQ(2)"></button>
+</div>
+
+<!-- ================= SETTINGS ================= -->
+<div id="settingsModal" class="modal">
+  <div class="modal-box">
+    <button class="close" onclick="closeSettings()">✖</button>
+    <button onclick="showScreen('faqScreen');closeSettings()">FAQ</button><br><br>
+    <button onclick="toggleLang()" id="langBtn"></button><br><br>
+    <button onclick="togglePhon()" id="phonBtn"></button>
+  </div>
+</div>
+
+<!-- ================= INFO MODAL ================= -->
+<div id="infoModal" class="modal">
+  <div class="modal-box">
+    <button class="close" onclick="closeInfo()">✖</button>
+    <div id="infoContent"></div>
+  </div>
+</div>
+<div id="letterNotesModal" class="modal">
+  <div class="modal-box">
+    <button class="close" onclick="closeLetterNotes()">✖</button>
+    <div id="letterNotesContent"></div>
+  </div>
+</div>
+
+<!--<script src="characters.js"></script>-->
+<script src="scripts/faq.js"></script>
+<script src="scripts/practice.js"></script>
+<script src="scripts/state.js"></script>
+<script src="scripts/stories.js"></script>
+<script src="scripts/translations.js"></script>
+<script src="scripts/words.js"></script>
+<script src="scripts/notes/letter_a.js"></script>
+<script src="scripts/notes/letter_b.js"></script>
+<script src="scripts/notes/letter_c.js"></script>
+<script src="scripts/notes/letter_d.js"></script>
+<script src="scripts/notes/letter_e.js"></script>
+<script src="scripts/notes/letter_f.js"></script>
+<script src="scripts/notes/letter_g.js"></script>
+<script src="scripts/notes/letter_h.js"></script>
+<script src="scripts/notes/letter_i.js"></script>
+<script src="scripts/notes/letter_j.js"></script>
+<script src="scripts/notes/letter_k.js"></script>
+<script src="scripts/notes/letter_l.js"></script>
+<script src="scripts/notes/letter_m.js"></script>
+<script src="scripts/notes/letter_n.js"></script>
+<script src="scripts/notes/letter_o.js"></script>
+<script src="scripts/notes/letter_p.js"></script>
+<script src="scripts/notes/letter_q.js"></script>
+<script src="scripts/notes/letter_r.js"></script>
+<script src="scripts/notes/letter_s.js"></script>
+<script src="scripts/notes/letter_t.js"></script>
+<script src="scripts/notes/letter_u.js"></script>
+<script src="scripts/notes/letter_v.js"></script>
+<script src="scripts/notes/letter_w.js"></script>
+<script src="scripts/notes/letter_x.js"></script>
+<script src="scripts/notes/letter_y.js"></script>
+<script src="scripts/notes/letter_z.js"></script>
+
+<script>
+/* ================= UTIL ================= */
+const $=id=>document.getElementById(id);
+function showScreen(id){
+ document.querySelectorAll(".screen").forEach(s=>s.classList.remove("active"));
+ $(id).classList.add("active");
+}
+function openSettings(){ $("settingsModal").style.display="flex"; }
+function closeSettings(){ $("settingsModal").style.display="none"; }
+const infoStack = [];
+function closeInfo(){
+  if (infoStack.length > 0) {
+    $("infoContent").innerHTML = infoStack.pop();
+  } else {
+    $("infoModal").style.display = "none";
+  }
+}
+function playSound(f){ state.audio.src=f; state.audio.play(); }
+function openInfo(html){
+  const modal = $("infoModal");
+  if (modal.style.display === "flex") {
+    infoStack.push($("infoContent").innerHTML);
+  }
+  $("infoContent").innerHTML = html;
+  modal.style.display = "flex";
+}
+
+function openStory(i) {
+  var story = typeof STORIES !== "undefined" ? STORIES[i] : null;
+  var el = document.getElementById("storyText");
+  if (!story || !story.lines || !el) return;
+  el.innerHTML = "";
+  state.autoIndex = 0;
+  var h2 = document.createElement("h2");
+  h2.textContent = story.title;
+  h2.className = "story-title";
+  el.appendChild(h2);
+  var wordIndex = 0;
+  story.lines.forEach(function(line) {
+    var tokens = (line.match(/[a-zA-Z']+|[.,!?]/g) || []);
+    for (var j = 0; j < tokens.length; j++) {
+      var tok = tokens[j];
+      if (/^[.,!?]$/.test(tok)) {
+        var sp = document.createElement("span");
+        sp.className = "punct";
+        if (/^[.!?]$/.test(tok)) sp.dataset.pause = "1";
+        sp.textContent = tok;
+        el.appendChild(sp);
+      } else {
+        var span = document.createElement("span");
+        var w = typeof WORDS !== "undefined" ? WORDS.find(function(x) { return x && x.word && x.word.toLowerCase() === tok.toLowerCase(); }) : null;
+        var hasEntry = w && w.soundFile;
+        span.className = "word" + (hasEntry ? "" : " word--unknown");
+        span.textContent = tok;
+        span.dataset.word = tok;
+        var curIdx = wordIndex++;
+        (function(ww) {
+          span.onclick = function() {
+            if (ww) openInfo("<h2>"+ww.word+"</h2><button onclick=\"playSound('"+ww.soundFile+"')\">🔊</button><p>"+(state.phon==="IPA"?ww.ipa:ww.ce)+"</p><p>"+ww.jpWord+"</p><p>"+(state.lang==="EN"?ww.enDef:ww.jpDef)+"</p>");
+          };
+        })(w);
+        (function(spanEl, idx) {
+          spanEl.oncontextmenu = function(e) {
+            e.preventDefault();
+            document.querySelectorAll(".word").forEach(function(x) { x.classList.remove("playing","highlighted"); });
+            spanEl.classList.add("highlighted");
+            state.autoIndex = idx;
+          };
+        })(span, curIdx);
+        el.appendChild(span);
+        if (j + 1 < tokens.length && /^[a-zA-Z']+$/.test(tokens[j + 1])) el.appendChild(document.createTextNode(" "));
+      }
+    }
+    el.appendChild(document.createElement("br"));
+  });
+  document.querySelectorAll(".screen").forEach(function(s) { s.classList.remove("active"); });
+  document.getElementById("storyScreen").classList.add("active");
+}
+
+/* ================= RENDER UI ================= */
+function renderUI(){
+ const t=TEXT[state.lang];
+ $("title").textContent=t.title;
+ $("btnSounds").textContent=t.sounds;
+ $("btnVocab").textContent=t.vocab;
+ $("btnReading").textContent=t.reading;
+ $("btnDict").textContent=t.dict;
+ $("sndBack").textContent="←";
+ $("sndTitle").textContent=t.sounds;
+ $("sndPractice").textContent=t.practice;
+ $("vocabTitle").textContent=t.practice;
+ $("speakBtn").textContent=t.speaking;
+ $("listenBtn").textContent=t.listening;
+ $("bothBtn").textContent=t.both;
+ $("lblMax").textContent=t.max;
+ $("lblReal").textContent=t.real;
+
+ [...$("maxSounds").options].forEach(o=>{
+  if(o.value==="Any") o.textContent=t.any;
+ });
+
+ $("practiceBack").textContent="←";
+ $("readingTitle").textContent=t.stories;
+ $("storyA").textContent=(typeof STORIES!=="undefined"&&STORIES[0]&&STORIES[0].title)||t.storyA;
+ $("storyB").textContent=(typeof STORIES!=="undefined"&&STORIES[1]&&STORIES[1].title)||t.storyB;
+ $("storyC").textContent=(typeof STORIES!=="undefined"&&STORIES[2]&&STORIES[2].title)||t.storyC;
+ $("dictTitle").textContent=t.dict;
+ $("dictSearch").placeholder=t.search;
+ $("langBtn").textContent=state.lang==="EN"?"日本語に切り替える":"Switch to English";
+ $("phonBtn").textContent=state.phon==="IPA"?"IPA Phonetics":"CE Phonetics";
+ $("colorModeBtn").textContent=state.colorMode?t.colorOn:t.colorOff;
+ $("autoReadBtn").textContent=state.autoReading?t.paused:t.auto;
+ renderDictionary();
+}
+renderUI();
+
+$("storyA").onclick = function() { openStory(0); };
+$("storyB").onclick = function() { openStory(1); };
+$("storyC").onclick = function() { openStory(2); };
+
+(function renderAlphabet() {
+    const alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZ".split("");
+    const grid = $("alphabetGrid");
+    if (!grid) {
+        console.error("alphabetGrid not found!");
+        return;
+    }
+
+    const borders = {
+        red: ["A","E","I","O","U"],
+        orange: ["L","R","W","Y"],
+        yellow: ["C","Q","X","?"]
+    };
+
+    grid.innerHTML = "";
+
+    alphabet.forEach(letter => {
+        const d = document.createElement("div");
+
+        // Color logic (uppercase only)
+        const b = Object.keys(borders).find(k => borders[k].includes(letter)) || "black";
+        d.className = "tile " + b;
+
+        // Display Aa, Bb, etc
+        d.textContent = letter + " " + letter.toLowerCase();
+
+        d.onclick = () => {
+            let h = 0, s = 0, e = 0;
+
+            WORDS.forEach(w => {
+                if (w.word.toUpperCase().includes(letter)) {
+                    h += w.tallies.hard;
+                    s += w.tallies.skip;
+                    e += w.tallies.easy;
+                }
+            });
+
+            const videoPath = `videos/animated_${letter.toLowerCase()}.mp4`;
+
+            // -------- LOAD NOTES --------
+            let notesHTML = `<p style="opacity:0.6">Notes coming soon for ${letter}</p>`;
+
+if (letter === "A" && typeof LETTER_NOTES_A === "function") { notesHTML = `<div class="letter-notes">${LETTER_NOTES_A(letter)}</div>`; }
+if (letter === "B" && typeof LETTER_NOTES_B === "function") { notesHTML = `<div class="letter-notes">${LETTER_NOTES_B(letter)}</div>`; }
+if (letter === "C" && typeof LETTER_NOTES_C === "function") { notesHTML = `<div class="letter-notes">${LETTER_NOTES_C(letter)}</div>`; }
+if (letter === "D" && typeof LETTER_NOTES_D === "function") { notesHTML = `<div class="letter-notes">${LETTER_NOTES_D(letter)}</div>`; }
+if (letter === "E" && typeof LETTER_NOTES_E === "function") { notesHTML = `<div class="letter-notes">${LETTER_NOTES_E(letter)}</div>`; }
+if (letter === "F" && typeof LETTER_NOTES_F === "function") { notesHTML = `<div class="letter-notes">${LETTER_NOTES_F(letter)}</div>`; }
+if (letter === "G" && typeof LETTER_NOTES_G === "function") { notesHTML = `<div class="letter-notes">${LETTER_NOTES_G(letter)}</div>`; }
+if (letter === "H" && typeof LETTER_NOTES_H === "function") { notesHTML = `<div class="letter-notes">${LETTER_NOTES_H(letter)}</div>`; }
+if (letter === "I" && typeof LETTER_NOTES_I === "function") { notesHTML = `<div class="letter-notes">${LETTER_NOTES_I(letter)}</div>`; }
+if (letter === "J" && typeof LETTER_NOTES_J === "function") { notesHTML = `<div class="letter-notes">${LETTER_NOTES_J(letter)}</div>`; }
+if (letter === "K" && typeof LETTER_NOTES_K === "function") { notesHTML = `<div class="letter-notes">${LETTER_NOTES_K(letter)}</div>`; }
+if (letter === "L" && typeof LETTER_NOTES_L === "function") { notesHTML = `<div class="letter-notes">${LETTER_NOTES_L(letter)}</div>`; }
+if (letter === "M" && typeof LETTER_NOTES_M === "function") { notesHTML = `<div class="letter-notes">${LETTER_NOTES_M(letter)}</div>`; }
+if (letter === "N" && typeof LETTER_NOTES_N === "function") { notesHTML = `<div class="letter-notes">${LETTER_NOTES_N(letter)}</div>`; }
+if (letter === "O" && typeof LETTER_NOTES_O === "function") { notesHTML = `<div class="letter-notes">${LETTER_NOTES_O(letter)}</div>`; }
+if (letter === "P" && typeof LETTER_NOTES_P === "function") { notesHTML = `<div class="letter-notes">${LETTER_NOTES_P(letter)}</div>`; }
+if (letter === "Q" && typeof LETTER_NOTES_Q === "function") { notesHTML = `<div class="letter-notes">${LETTER_NOTES_Q(letter)}</div>`; }
+if (letter === "R" && typeof LETTER_NOTES_R === "function") { notesHTML = `<div class="letter-notes">${LETTER_NOTES_R(letter)}</div>`; }
+if (letter === "S" && typeof LETTER_NOTES_S === "function") { notesHTML = `<div class="letter-notes">${LETTER_NOTES_S(letter)}</div>`; }
+if (letter === "T" && typeof LETTER_NOTES_T === "function") { notesHTML = `<div class="letter-notes">${LETTER_NOTES_T(letter)}</div>`; }
+if (letter === "U" && typeof LETTER_NOTES_U === "function") { notesHTML = `<div class="letter-notes">${LETTER_NOTES_U(letter)}</div>`; }
+if (letter === "V" && typeof LETTER_NOTES_V === "function") { notesHTML = `<div class="letter-notes">${LETTER_NOTES_V(letter)}</div>`; }
+if (letter === "W" && typeof LETTER_NOTES_W === "function") { notesHTML = `<div class="letter-notes">${LETTER_NOTES_W(letter)}</div>`; }
+if (letter === "X" && typeof LETTER_NOTES_X === "function") { notesHTML = `<div class="letter-notes">${LETTER_NOTES_X(letter)}</div>`; }
+if (letter === "Y" && typeof LETTER_NOTES_Y === "function") { notesHTML = `<div class="letter-notes">${LETTER_NOTES_Y(letter)}</div>`; }
+if (letter === "Z" && typeof LETTER_NOTES_Z === "function") { notesHTML = `<div class="letter-notes">${LETTER_NOTES_Z(letter)}</div>`; }
+
+            // -------- FINAL POPUP ORDER: VIDEO → NOTES → TALLIES --------
+openInfo(`
+  <div class="letter-popup-wrapper">
+    <div class="videoBox" onclick="this.classList.toggle('fullscreen')">
+      <video autoplay loop muted playsinline>
+        <source src="${videoPath}" type="video/mp4">
+      </video>
+    </div>
+    <h2>${d.textContent}</h2>
+    <div class="letter-notes-scroll">
+      ${notesHTML}
+    </div>
+    <hr>
+    <p class="letter-tallies">${TEXT[state.lang].hard}: ${h}<br>${TEXT[state.lang].skip}: ${s}<br>${TEXT[state.lang].easy}: ${e}</p>
+  </div>
+`);
+        };
+
+        d.oncontextmenu = e => {
+            e.preventDefault();
+            d.classList.toggle("highlighted");
+        };
+
+        grid.appendChild(d);
+    });
+})();
+
+/* ================= SOUNDS ================= */
+const SOUNDS=[
+ {s:"i",t:"v"},{s:"ɪ",t:"v"},{s:"e",t:"v"},{s:"ɛ",t:"v"},
+ {s:"æ",t:"v"},{s:"ɑ",t:"v"},{s:"ɔ",t:"v"},{s:"o",t:"v"},
+ {s:"ʊ",t:"v"},{s:"u",t:"v"},{s:"ʌ",t:"v"},{s:"ə",t:"v"},
+ {s:"aɪ",t:"v"},{s:"aʊ",t:"v"},{s:"ɔɪ",t:"v"},
+ {s:"p"},{s:"b"},{s:"t"},{s:"d"},{s:"k"},{s:"g"},
+ {s:"f"},{s:"v"},{s:"θ"},{s:"ð"},{s:"s"},{s:"z"},
+ {s:"ʃ"},{s:"ʒ"},{s:"h"},{s:"m"},{s:"n"},{s:"ŋ"},
+ {s:"l",t:"lrwy"},{s:"r",t:"lrwy"},{s:"w",t:"lrwy"},{s:"j",t:"lrwy"}
+];
+const CE_MAP={"θ":"th","ð":"th","ʃ":"sh","ʒ":"zh","ŋ":"ng","j":"y"};
+
+function renderSounds(){
+ $("soundsGrid").innerHTML="";
+ SOUNDS.forEach(o=>{
+  const d=document.createElement("div");
+  const cls=o.t==="v"?"red":o.t==="lrwy"?"orange":"black";
+  d.className="tile "+cls;
+  d.textContent= state.phon==="IPA"?o.s:(CE_MAP[o.s]||o.s);
+  d.onclick=()=>openInfo(`<h2>${d.textContent}</h2>`);
+  d.oncontextmenu=e=>{e.preventDefault();d.classList.toggle("highlighted");};
+  $("soundsGrid").appendChild(d);
+ });
+}
+renderSounds();
+
+const CEFRS=["A1","A2","B1","B2","C1","Unlisted","Undefined"];
+CEFRS.forEach(c=>{
+ const label=document.createElement("label");
+ const cb=document.createElement("input");
+ cb.type="checkbox"; cb.checked=true;
+ cb.onchange=()=>{ cb.checked?state.cefrFilter.add(c):state.cefrFilter.delete(c); renderDictionary(); };
+ label.appendChild(cb); label.append(" "+c+" ");
+ $("cefrButtons").appendChild(label);
+});
+
+function updateFAQButtons(){
+ $("faq0").textContent = state.lang==="EN"?FAQ[0].enQ:FAQ[0].jpQ;
+ $("faq1").textContent = state.lang==="EN"?FAQ[1].enQ:FAQ[1].jpQ;
+ $("faq2").textContent = state.lang==="EN"?FAQ[2].enQ:FAQ[2].jpQ;
+}
+updateFAQButtons();
+
+//8
+</script>
+</body>
+</html>
